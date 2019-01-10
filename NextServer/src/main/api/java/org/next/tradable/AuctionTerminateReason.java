@@ -1,0 +1,5 @@
+package org.next.tradable;
+
+public enum AuctionTerminateReason {
+    EXPIRED,NO_LONGER_MARKETABLE,CUSTOMER_ORDER,INCOMING_CROSSED_BOOK,PRICE_IMPROVED,SAME_SIDE_BETTER_PRICE
+}
