@@ -1,0 +1,236 @@
+= Frog Message Definition
+
+== Session Messages
+=== Login
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |0
+|Msg Type    | 2 |Number |1
+|User Id     | 6 |String |
+|Password    | 6 |String |
+|Optional    | 2 |Bitmap |
+|===
+
+=== Login Response
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number |2
+|Authentication Code|4|Number|
+|Error Code  | 2 |Number| * 0 : Accepted
+                          * 1 : Invalid User
+                          * 2 : Invalid Password
+                          * 3 : Disabled
+|===
+
+=== Logout
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number |3
+|User Id     | 6 |String
+|Authentication Code | 4 | Number
+|===
+
+=== Instruments Download Request
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number | 4
+|Asset Symbol| 6 |String |
+|Asset Type  | 1 | Number|
+|===
+=== Instruments Download Response
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number | 5
+|Asset Symbol| 6 |String|
+|Asset Key   | 4 |Number|
+|Asset Type  | 1 |Number|
+|Settlement Type|1|Number|
+|Exercise Style|1|Number|
+4+e|Start Block
+|Instrument id|4|Number|
+|Instrument Tye|1|Number|
+|Optional bitmask|1|bitmap|
+|bit 1 Sub type|1|Number|
+4+|bit 2 Strike Price
+>|Decimal   |Number|4 bits|
+>|value     |Number|4|Positive Number
+|bit 3 Expiration Date|6|String|
+4+|bit 4 Components
+|Number of components|2|Number|
+4+|Start block
+>|Instrument Id|4|Number|
+>|Ratio|2|Number| * < 0 for DEBIT
+                 * > 0 for CREDIT
+|Description |32|String|
+4+|End Block
+4+|End Block
+|===
+
+== Trading Messages
+=== *ORDER*
+
+A request to Buy or Sell unit of share at a price. Negative price signifies a Debit or Buy order
+Positive price signifies a Sell or Credit order
+For example Buy 100 IBM at 80.00 or 100 IBM at -80.00
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number |100
+|Instrument  | 8 |Number |
+|Quantity    | 4 |Number |
+|Display Quantity|4 |Number |Display quantity must be equal or less than quantity
+4+e|Price
+>|Type      | 4 bits|Number|
+>|Decimal   | 4 bits|Number|
+>|value     | 4|Number| * < 0 for Debit/Buy
+                        * > 0 for Credit/Sell
+|Priority   | 1|Number| * C :Customer
+                  * B :Broker Dealer
+                  * M :Market Maker
+|Time In Force|1|char|* G : Good Till Cancel
+                      * D : Day
+|Order Type  | 1|char|* 0 : Regular
+                 * 1 : AON -  All or none
+                 * 2 : IOC -  Immediate or cancel
+                 * 3 : FOK -  Fill or Kill
+                 * 4 : Reserved
+                 * 5 : ISO - Intermarket Sweep Order
+|Authentication Token|Number| 4|
+|Client Id   | 8|Number|
+|Account     |4|String|
+|===
+
+=== *ORDER STATUS*
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number |100
+|Instrument  | 8 |Number |
+|Client Id   | 8|Number|
+|Order Id    | 4|Number|
+|Original Quantity|4|Number|
+|Filled Quantity|4|Number|
+|Cancelled Qty|4|Number|
+|Leaves Quantity|4|Number|
+|Status         |1|Number|
+|===
+=== *ORDER FILL REPORT*
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number |100
+|Instrument  | 8 |Number |
+|Client Id   | 8|Number|
+|Order I     | 4|Number|
+|===
+
+=== *QUOTE*
+Market maker interest to buy and sell an instrument.
+
+IBM 80.00 - 90.00 FOR 100 X 100, an interest to buy IBM at 80.00 for 100 and to sell at 90.00 for 100 shares
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type   | 2 |Number| 200
+|Instrument | 8 |Number| Stock identifier
+4+e|Debit Price
+>|Type      |Number| 4 bits|
+>|Decimal   |Number| 4 bits|
+>|value     |Number| 4| Negative Number
+4+e|Credit Price
+>|Type      |Number| 4 bits|
+>|Decimal   |Number| 4 bits|
+>|value     |Number| 4| Positive Number
+|Authentication Token|Number|4|
+|Account    |4|String|
+
+|===
+=== *BULK QUOTE*
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number| 200
+|Number of Quotes in Block|2|Number| Number of individual quotes in a block
+4+|Start Block
+|Instrument  | 8 |Number|
+4+e|Debit Price
+>|Type       | 4 bits|Number|
+>|Decimal    | 4 bits|Number|
+>|value      | 4|Number| Negative Number
+4+|Credit Price
+>|Type       | 4 bits|Number|
+>|Decimal    | 4 bits|Number|
+>|value      | 4|Number| Positive Number
+4+e|End Block
+|Authentication Token|4|Number|
+|Account     |4|String|
+
+|===
+
+=== *CROSS*
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number|100
+|Instrument  | 8 |Number|
+|Type        | 1 |Number|
+4+e|DEBIT
+|Quantity    | 4 |Number|
+4+|Price
+>|Type       | 4 bits|Number|
+>|Decimal    | 4 bits|Number|
+>|value      | 4|Number| Negative Number
+|Priority    | 1|Number|
+|Time In Force|1|Number|
+|Order Type  | 1|Number|
+|Client Id   | 8|Number|
+4+e|CREDIT
+|Quantity    | 4 |Number|
+4+|Price
+>|Type       | 4 bits|Number|
+>|Decimal    | 4 bits|Number|
+>|value      | 4|Number| Positive Number
+|Priority    | 1|Number|
+|Time In Force|1|Number|
+|Order Type  | 1|Number|
+|Client Id   | 8|Number|
+|Authentication Token| 4|Number|
+|Account     |4|String|
+|===
+
+=== *Auction Response*
+[cols="2,1,1,3a",options="header"]
+|===
+|Field Name|Length in bytes|Type|Value
+|Sequence Id | 4 |Number |
+|Msg Type    | 2 |Number|100
+|Instrument  | 8 |Number|
+|Quantity    | 4 |Number|
+4+e|Price
+>|Type       | 4 bits|Number|
+>|Decimal    | 4 bits|Number|
+>|value      | 4|Number| * < 0 for Debit
+                         * > 0 for Credit
+|Priority    | 1|Number|
+|Authentication Token| 4|Number|
+|Client Id   | 8|Number|
+|Auction Id  |4 |Number| The id of the auction in which this response is for
+|Account     |4 |String
+
+|===
+
